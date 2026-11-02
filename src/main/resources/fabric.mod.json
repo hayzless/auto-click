@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "auto-click",
+	"version": "${version}",
+	"name": "Auto Click",
+	"description": "Hold-to-click client module with a jittered cadence, configurable through ModMenu.",
+	"authors": [
+		"hayzless"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/auto-click/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"org.hayzless.AutoClickClient"
+		],
+		"modmenu": [
+			"org.hayzless.modmenu.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"auto-click.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": ">=17.0.0"
+	}
+}
