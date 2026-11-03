@@ -5,12 +5,13 @@ with configuration inside ModMenu.
 
 ## What it does
 
-- Holds left click on an entity: attacks at the configured rate, spread across frames instead of one
-  click per tick, so the cadence can go past the 20 CPS that the tick alone allows.
+- Holds left click: attacks entities, mines the block under the crosshair and swings at air at the
+  configured rate, spread across frames instead of one click per tick, so the cadence can go past the
+  20 CPS that the tick alone allows.
 - Holds right click: uses items, places blocks and interacts at the configured rate instead of
   vanilla's fixed four tick (5 per second) cooldown.
-- Leaves block breaking completely alone. Nothing is clicked unless the crosshair is on an entity, so
-  mining behaves exactly like vanilla and no break-speed check is ever provoked.
+- Mining speed stays vanilla's: the repeated attack calls are no-ops while a block is already
+  breaking, so the module only adds the extra swings.
 - Every click in a tick goes to the same entity the tick was locked to, which keeps Grim's
   multi-interaction checks quiet even on servers that enable experimental checks.
 

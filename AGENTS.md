@@ -85,12 +85,14 @@ These are not style preferences. Breaking one either kills the feature or trips 
    button therefore produces *no* vanilla attack. The module must perform every click itself —
    an earlier version only injected the surplus above one click per tick and delivered nothing at
    12 CPS.
-2. **Left click is only active with an entity under the crosshair.** Block breaking lives in
-   `handleBlockBreaking`, driven by `attackKey.isPressed()`, and is untouched. Never gate or inject
-   while the crosshair is on a block or air.
+2. **Left click runs whatever is under the crosshair.** Entity, block or air all click at the
+   configured rate. Repeated `attackBlock` calls while that block is already breaking are a no-op
+   (`attackBlock` only starts a break when `!breakingBlock || !isCurrentlyBreaking(pos)`), so
+   `handleBlockBreaking` still sets mining speed and injecting is safe. Do not touch
+   `handleBlockBreaking` itself.
 3. **`doAttack()` returns early when `attackCooldown > 0`.** That field is set to 10 only for a
-   MISS or null target, never for an entity hit, so repeated entity attacks do reach the wire. Air
-   swings are capped at 2 CPS by vanilla and are not worth chasing.
+   MISS or null target, never for an entity hit or a block hit. The module zeroes it before each
+   injected click, otherwise air swings are capped at 2 CPS by vanilla.
 4. **`itemUseCooldown` is set inside `doItemUse()`, but only checked by `handleInputEvents`.**
    Injected calls bypass the 4-tick gate. `respectUseCooldown` honours it manually, which is the
    only place that behaviour exists.

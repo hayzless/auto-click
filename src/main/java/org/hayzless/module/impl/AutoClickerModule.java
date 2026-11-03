@@ -14,10 +14,11 @@ import java.util.Random;
  * Holds a mouse button and clicks at the configured rate.
  *
  * <p>Vanilla {@code handleInputEvents} only attacks on press events, so holding a button produces no
- * clicks at all and the module has to perform every one of them. Clicks are only ever sent to the
- * entity the tick was locked to: Grim flags interactions with <em>different</em> entities inside one
- * tick, never repeated hits on one entity. The left button is left completely alone unless the
- * crosshair is on an entity, so mining behaves exactly like vanilla.</p>
+ * clicks at all and the module has to perform every one of them. Left clicks run whatever is under
+ * the crosshair: an entity is hit, a block is mined (the repeated {@code attackBlock} calls are a
+ * no-op while that block is already breaking, so {@code handleBlockBreaking} still sets the pace),
+ * and a swing at nothing still animates. Only entity targets are locked per tick, because Grim
+ * flags interactions with <em>different</em> entities inside one tick.</p>
  */
 public final class AutoClickerModule extends Module {
 	private static final AutoClickerModule INSTANCE = new AutoClickerModule();
@@ -71,8 +72,7 @@ public final class AutoClickerModule extends Module {
 		leftHeld = usable
 				&& config.leftClick
 				&& client.options.attackKey.isPressed()
-				&& !client.player.isUsingItem()
-				&& entityId(client) != -1;
+				&& !client.player.isUsingItem();
 		rightHeld = usable && config.rightClick && client.options.useKey.isPressed();
 		lockedEntityId = leftHeld ? entityId(client) : -1;
 
@@ -105,9 +105,13 @@ public final class AutoClickerModule extends Module {
 		AutoClickConfig config = AutoClickClient.config();
 		MinecraftClientAccessor accessor = (MinecraftClientAccessor) client;
 
-		// One target per tick only: switching entities mid-tick is the one thing Grim reports.
-		if (leftHeld && entityId(client) == lockedEntityId) {
+		// One entity per tick only: switching entities mid-tick is the one thing Grim reports.
+		if (leftHeld && sameEntity(client)) {
 			while (leftScheduler.extraClickDue(sinceTickStart)) {
+				// doAttack() refuses when this is above zero. Vanilla only sets it for a swing at
+				// nothing, to cap air swings at 2/s; a clicker at a set rate wants the click anyway.
+				client.attackCooldown = 0;
+
 				injecting = true;
 				try {
 					accessor.autoClick$invokeDoAttack();
@@ -158,6 +162,15 @@ public final class AutoClickerModule extends Module {
 		}
 
 		return rightScheduler.takeVanillaClick();
+	}
+
+	/**
+	 * True unless the crosshair moved to a different entity since the tick started. Blocks and air
+	 * always pass, so mining and swinging at nothing still click.
+	 */
+	private boolean sameEntity(MinecraftClient client) {
+		int id = entityId(client);
+		return id == -1 || id == lockedEntityId;
 	}
 
 	private static int entityId(MinecraftClient client) {
